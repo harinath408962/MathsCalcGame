@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Accuracy Practice</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; background: #f5f5f5; }
+  .container { margin-top: 40px; }
+  .hidden { display: none; }
+  input, select, button { padding: 8px; margin: 5px; font-size: 16px; }
+  #question { font-size: 28px; margin: 20px; }
+  #timer { font-weight: bold; }
+  .result-box { background: white; padding: 20px; display: inline-block; border-radius: 10px; }
+  .btn-red { background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+  .btn-gray { background-color: gray; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+</style>
+</head>
+<body>
+
+<div class="container" id="setupScreen">
+  <h2>🧮 MATHS PRACTICE</h2>
+  <p>Select your difficulty and time to start the challenge!</p>
+
+  <label>Difficulty:</label>
+  <select id="difficulty">
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+    <option value="pro">Pro</option>
+    <option value="legend">Legend</option>
+  </select><br>
+
+  <label>Time (minutes):</label>
+  <input type="number" id="time" placeholder="e.g. 2"><br>
+
+  <button onclick="startGame()">Start</button>
+</div>
+
+<div class="container hidden" id="gameScreen">
+  <h3 id="timer">Time: 0s</h3>
+  <div id="question"></div>
+  <input type="number" id="answer" placeholder="Enter your answer"><br>
+  <button class="btn-red" onclick="submitAnswer()">Submit</button>
+  <button class="btn-gray" onclick="skipQuestion()">Skip</button>
+  <p id="feedback"></p>
+</div>
+
+<div class="container hidden" id="resultScreen">
+  <div class="result-box">
+    <h2>🧾 Results</h2>
+    <p id="totalQ"></p>
+    <p id="correctQ"></p>
+    <p id="wrongQ"></p>
+    <p id="skippedQ"></p>
+    <p id="accuracy"></p>
+    <p id="avgTime"></p>
+    <button onclick="restart()">QUIT</button>
+  </div>
+</div>
+
+<script>
+let timerInterval, remainingTime;
+let correct = 0, wrong = 0, total = 0, skipped = 0, startTime;
+let currentAnswer;
+
+function startGame() {
+  const diff = document.getElementById("difficulty").value;
+  const timeMin = document.getElementById("time").value;
+  if (!timeMin) {
+    alert("Please enter time!");
+    return;
+  }
+
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  remainingTime = parseInt(timeMin) * 60;
+  startTime = new Date();
+
+  startTimer();
+  nextQuestion(diff);
+}
+
+function startTimer() {
+  const timerDisplay = document.getElementById("timer");
+  timerDisplay.textContent = `Time: ${remainingTime}s`;
+
+  timerInterval = setInterval(() => {
+    remainingTime--;
+    timerDisplay.textContent = `Time: ${remainingTime}s`;
+    if (remainingTime <= 0) endGame();
+  }, 1000);
+}
+
+function nextQuestion(difficulty) {
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").textContent = "";
+
+  const [min, max] = getRange(difficulty);
+  let questionText, answer;
+
+  const type = rand(0, 4); // 0:+ 1:- 2:* 3:/ 4:√
+  let n1 = rand(min, max), n2 = rand(min, max);
+
+  switch (type) {
+    case 0: // Addition
+      questionText = `${n1} + ${n2}`;
+      answer = n1 + n2;
+      break;
+
+    case 1: // Subtraction
+      if (n2 > n1) [n1, n2] = [n2, n1];
+      questionText = `${n1} - ${n2}`;
+      answer = n1 - n2;
+      break;
+
+    case 2: // Multiplication
+      questionText = `${n1} × ${n2}`;
+      answer = n1 * n2;
+      break;
+
+    case 3: // Division (ensure integer or small denominator)
+      [n1, n2] = getCleanDivision(min, max);
+      questionText = `${n1} ÷ ${n2}`;
+      answer = n1 / n2;
+      break;
+
+    case 4: // Square root
+      const sq = rand(min, max);
+      questionText = `√${sq * sq}`;
+      answer = sq;
+      break;
+  }
+
+  currentAnswer = answer;
+  document.getElementById("question").textContent = questionText;
+}
+
+function submitAnswer() {
+  const userAns = parseFloat(document.getElementById("answer").value);
+  if (isNaN(userAns)) return;
+
+  total++;
+  if (Math.abs(userAns - currentAnswer) < 0.01) {
+    correct++;
+    document.getElementById("feedback").textContent = "Correct!";
+  } else {
+    wrong++;
+    document.getElementById("feedback").textContent = `Wrong! (Correct: ${currentAnswer})`;
+  }
+
+  const diff = document.getElementById("difficulty").value;
+  nextQuestion(diff);
+}
+
+function skipQuestion() {
+  total++;
+  skipped++;
+  document.getElementById("feedback").textContent = `Skipped! (Correct: ${currentAnswer})`;
+  const diff = document.getElementById("difficulty").value;
+  nextQuestion(diff);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
+
+  const elapsedTime = (new Date() - startTime) / 1000;
+const answered = total - skipped;
+const avgTime = answered > 0 ? (elapsedTime / answered).toFixed(2) : 0;
+const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : 0;
+
+document.getElementById("totalQ").textContent = `Total Questions: ${total}`;
+document.getElementById("correctQ").textContent = `Correct: ${correct}`;
+document.getElementById("wrongQ").textContent = `Wrong: ${wrong}`;
+document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
+document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
+document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
+
+}
+
+function restart() {
+  location.reload();
+}
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRange(difficulty) {
+  switch (difficulty) {
+    case "easy": return [1, 10];
+    case "medium": return [1, 100];
+    case "hard": return [10, 1000];
+    case "pro": return [100, 1000];
+    case "legend": return [1000, 10000];
+  }
+}
+
+function getCleanDivision(min, max) {
+  let a, b;
+  for (let i = 0; i < 100; i++) {
+    a = rand(min, max);
+    b = rand(2, 9);
+    if (a % b === 0 || b < 10) break;
+  }
+  return [a, b];
+}
+</script>
+
+</body>
+</html>
