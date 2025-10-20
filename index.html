@@ -3,34 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Accuracy Practice</title>
+<title>Maths Game</title>
 <style>
     img {
-                width: 100px;
-                border-radius: 50px; 
-                float:none;
-                margin-right: 30px;
-                object-fit: cover;
-            }
+        width: 100px;
+        border-radius: 50px; 
+        margin-top: 15px;
+        object-fit: cover;
+    }
 
-  body { font-family: Arial, sans-serif; text-align: center; background: #f5f5f5; }
-  .container { margin-top: 40px; }
-  .hidden { display: none; }
-  input, select, button { padding: 8px; margin: 5px; font-size: 16px; }
-  #question { font-size: 28px; margin: 20px; }
-  #timer { font-weight: bold; }
-  .result-box { background: white; padding: 20px; display: inline-block; border-radius: 10px; }
-  .btn-red { background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
-  .btn-gray { background-color: gray; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+    body { font-family: Arial, sans-serif; text-align: center; background: #f5f5f5; }
+    .container { margin-top: 40px; }
+    .hidden { display: none; }
+    input, select, button { padding: 8px; margin: 5px; font-size: 16px; }
+    #question { font-size: 28px; margin: 20px; }
+    #timer { font-weight: bold; }
+    .result-box { background: white; padding: 20px; display: inline-block; border-radius: 10px; }
+    .btn-red { background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+    .btn-gray { background-color: gray; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+    table { margin: 20px auto; border-collapse: collapse; width: 90%; max-width: 800px; background: white; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #f0f0f0; }
 </style>
 </head>
 <body>
 
-    <img src="photo.jpg" alt="Harinath">
+<img src="photo.jpg" alt="Harinath">
 
 <div class="container" id="setupScreen">
   <h2>MATHS CALC GAME</h2>
-  <p>Select your difficulty and time to start the challenge!</p>
+  <p>Enter your unique ID, select difficulty, and start the challenge!</p>
+
+  <label>User ID:</label>
+  <input type="text" id="userId" placeholder="Enter unique ID"><br>
 
   <label>Difficulty:</label>
   <select id="difficulty">
@@ -45,13 +50,12 @@
   <input type="number" id="time" placeholder="e.g. 2"><br>
 
   <button onclick="startGame()" style="background-color: rgb(19, 209, 183); color: red; font-weight: bold;">START</button>
-
 </div>
 
 <div class="container hidden" id="gameScreen">
   <h3 id="timer">Time: 0s</h3>
   <div id="question"></div>
-  <input type="number" id="answer" placeholder="Enter your answer"><br>
+  <input type="number" id="answer" placeholder="Enter your answer" step="any"><br>
   <button class="btn-red" onclick="submitAnswer()">Submit</button>
   <button class="btn-gray" onclick="skipQuestion()">Skip</button>
   <p id="feedback"></p>
@@ -60,37 +64,73 @@
 <div class="container hidden" id="resultScreen">
   <div class="result-box">
     <h2>🧾 Results</h2>
+    <p id="userInfo"></p>
     <p id="totalQ"></p>
     <p id="correctQ"></p>
     <p id="wrongQ"></p>
     <p id="skippedQ"></p>
     <p id="accuracy"></p>
+    <p id="points"></p>
     <p id="avgTime"></p>
+    <button onclick="showMistakes()">Show Wrong Answers</button>
     <button onclick="restart()">QUIT</button>
   </div>
+</div>
+
+<div class="container" id="leaderboardSection">
+  <h2>🏆 Leaderboard</h2>
+  <div>
+    <button onclick="sortLeaderboard('points')">Sort by Total Points</button>
+    <button onclick="sortLeaderboard('mode')">Sort by Mode</button>
+  </div>
+
+  <table id="leaderboardTable">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Mode</th>
+        <th>Time</th>
+        <th>Accuracy (%)</th>
+        <th>Points</th>
+        <th>Total Points</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
 </div>
 
 <script>
 let timerInterval, remainingTime;
 let correct = 0, wrong = 0, total = 0, skipped = 0, startTime;
-let currentAnswer;
+let currentAnswer, currentQuestion;
+let userId, difficulty, timeMin;
+let mistakes = [];
+
+const modePoints = { easy: 10, medium: 20, hard: 50, pro: 200, legend: 500 };
 
 function startGame() {
-  const diff = document.getElementById("difficulty").value;
-  const timeMin = document.getElementById("time").value;
-  if (!timeMin) {
-    alert("Please enter time!");
+  userId = document.getElementById("userId").value.trim();
+  difficulty = document.getElementById("difficulty").value;
+  timeMin = document.getElementById("time").value;
+
+  if (!userId) { alert("Please enter a unique User ID!"); return; }
+  if (!timeMin) { alert("Please enter time!"); return; }
+
+  const existingData = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  if (existingData.some(x => x.userId === userId)) {
+    alert("This ID already exists. Please choose a different one.");
     return;
   }
 
   document.getElementById("setupScreen").classList.add("hidden");
   document.getElementById("gameScreen").classList.remove("hidden");
+  document.getElementById("leaderboardSection").classList.add("hidden");
 
   remainingTime = parseInt(timeMin) * 60;
   startTime = new Date();
 
   startTimer();
-  nextQuestion(diff);
+  nextQuestion(difficulty);
 }
 
 function startTimer() {
@@ -111,39 +151,24 @@ function nextQuestion(difficulty) {
   const [min, max] = getRange(difficulty);
   let questionText, answer;
 
-  const type = rand(0, 4); // 0:+ 1:- 2:* 3:/ 4:√
+  const type = rand(0, 4);
   let n1 = rand(min, max), n2 = rand(min, max);
 
   switch (type) {
-    case 0: // Addition
-      questionText = `${n1} + ${n2}`;
-      answer = n1 + n2;
-      break;
-
-    case 1: // Subtraction
-      if (n2 > n1) [n1, n2] = [n2, n1];
-      questionText = `${n1} - ${n2}`;
-      answer = n1 - n2;
-      break;
-
-    case 2: // Multiplication
-      questionText = `${n1} × ${n2}`;
-      answer = n1 * n2;
-      break;
-
-    case 3: // Division (ensure integer or small denominator)
-      [n1, n2] = getCleanDivision(min, max);
+    case 0: questionText = `${n1} + ${n2}`; answer = n1 + n2; break;
+    case 1: if (n2 > n1) [n1, n2] = [n2, n1]; questionText = `${n1} - ${n2}`; answer = n1 - n2; break;
+    case 2: questionText = `${n1} × ${n2}`; answer = n1 * n2; break;
+    case 3: // Division (show integer ÷ integer, but answer can be decimal)
+      n1 = rand(min, max);
+      n2 = rand(2, 9);
       questionText = `${n1} ÷ ${n2}`;
-      answer = n1 / n2;
+      answer = parseFloat((n1 / n2).toFixed(2)); // store up to 2 decimals
       break;
 
-    case 4: // Square root
-      const sq = rand(min, max);
-      questionText = `√${sq * sq}`;
-      answer = sq;
-      break;
+    case 4: const sq = rand(min, max); questionText = `√${sq * sq}`; answer = sq; break;
   }
 
+  currentQuestion = questionText;
   currentAnswer = answer;
   document.getElementById("question").textContent = questionText;
 }
@@ -153,52 +178,134 @@ function submitAnswer() {
   if (isNaN(userAns)) return;
 
   total++;
-  if (Math.abs(userAns - currentAnswer) < 0.01) {
+  const correctAns = Math.round(currentAnswer * 100) / 100;
+  const userRounded = Math.round(userAns * 100) / 100;
+
+  if (Math.abs(userAns.toFixed(2) - currentAnswer.toFixed(2)) < 0.01) {
+
     correct++;
     document.getElementById("feedback").textContent = "Correct!";
   } else {
     wrong++;
-    document.getElementById("feedback").textContent = `Wrong! (Correct: ${currentAnswer})`;
+    document.getElementById("feedback").textContent = `Wrong! (Correct: ${correctAns})`;
+    mistakes.push({ q: currentQuestion, correct: correctAns, user: userRounded });
   }
 
-  const diff = document.getElementById("difficulty").value;
-  nextQuestion(diff);
+  nextQuestion(difficulty);
 }
 
 function skipQuestion() {
   total++;
   skipped++;
-  document.getElementById("feedback").textContent = `Skipped! (Correct: ${currentAnswer})`;
-  const diff = document.getElementById("difficulty").value;
-  nextQuestion(diff);
+  document.getElementById("feedback").textContent = `⏭Skipped! (Correct: ${currentAnswer})`;
+  nextQuestion(difficulty);
 }
 
 function endGame() {
   clearInterval(timerInterval);
   document.getElementById("gameScreen").classList.add("hidden");
   document.getElementById("resultScreen").classList.remove("hidden");
+  document.getElementById("leaderboardSection").classList.remove("hidden");
 
   const elapsedTime = (new Date() - startTime) / 1000;
-const answered = total - skipped;
-const avgTime = answered > 0 ? (elapsedTime / answered).toFixed(2) : 0;
-const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : 0;
+  const answered = total - skipped;
+  const avgTime = answered > 0 ? (elapsedTime / answered).toFixed(2) : 0;
+  const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : 0;
+  const points = correct * modePoints[difficulty];
 
-document.getElementById("totalQ").textContent = `Total Questions: ${total}`;
-document.getElementById("correctQ").textContent = `Correct: ${correct}`;
-document.getElementById("wrongQ").textContent = `Wrong: ${wrong}`;
-document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
-document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
-document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
+  document.getElementById("userInfo").textContent = `User ID: ${userId} | Mode: ${difficulty} | Time: ${timeMin} min`;
+  document.getElementById("totalQ").textContent = `Total Questions: ${total}`;
+  document.getElementById("correctQ").textContent = `Correct: ${correct}`;
+  document.getElementById("wrongQ").textContent = `Wrong: ${wrong}`;
+  document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
+  document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
+  document.getElementById("points").textContent = `Points: ${points}`;
+  document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
 
+  saveToLeaderboard(userId, difficulty, timeMin, accuracy, points);
 }
+
+function showMistakes() {
+  if (mistakes.length === 0) {
+    alert("No mistakes! 🎉");
+    return;
+  }
+  let msg = "Your Mistakes:\n\n";
+  mistakes.forEach((m, i) => {
+    msg += `${i + 1}. ${m.q}\nYour Answer: ${m.user} | Correct: ${m.correct}\n\n`;
+  });
+  alert(msg);
+}
+
+function saveToLeaderboard(userId, mode, time, accuracy, points) {
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  let existing = leaderboard.find(u => u.userId === userId);
+
+  if (existing) {
+    existing.totalPoints += points;
+  } else {
+    existing = { userId, mode, time, accuracy, points, totalPoints: points };
+    leaderboard.push(existing);
+  }
+
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+  updateLeaderboard();
+}
+
+function updateLeaderboard() {
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
+  const body = document.getElementById("leaderboardBody");
+  body.innerHTML = "";
+  leaderboard.forEach(u => {
+    const row = `<tr>
+      <td>${u.userId}</td>
+      <td>${u.mode}</td>
+      <td>${u.time} min</td>
+      <td>${u.accuracy}</td>
+      <td>${u.points}</td>
+      <td>${u.totalPoints}</td>
+    </tr>`;
+    body.innerHTML += row;
+  });
+}
+
+function sortLeaderboard(type) {
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  if (type === 'points') {
+    leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
+  } else if (type === 'mode') {
+    const order = ["easy", "medium", "hard", "pro", "legend"];
+    leaderboard.sort((a, b) => order.indexOf(a.mode) - order.indexOf(b.mode));
+  }
+  const body = document.getElementById("leaderboardBody");
+  body.innerHTML = "";
+  leaderboard.forEach(u => {
+    const row = `<tr>
+      <td>${u.userId}</td>
+      <td>${u.mode}</td>
+      <td>${u.time} min</td>
+      <td>${u.accuracy}</td>
+      <td>${u.points}</td>
+      <td>${u.totalPoints}</td>
+    </tr>`;
+    body.innerHTML += row;
+  });
+}
+//function sortLeaderboard(criteria) {
+//   leaderboard.sort((a, b) => {
+//     if (criteria === "points") return b.totalPoints - a.totalPoints;
+//     if (criteria === "mode") return a.mode.localeCompare(b.mode);
+//     return 0;
+//   });
+//   updateLeaderboardTable();
+// }
 
 function restart() {
   location.reload();
 }
 
-function rand(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
 function getRange(difficulty) {
   switch (difficulty) {
@@ -219,8 +326,10 @@ function getCleanDivision(min, max) {
   }
   return [a, b];
 }
+
+// Initial load leaderboard
+updateLeaderboard();
 </script>
 
 </body>
 </html>
-
