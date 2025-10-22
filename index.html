@@ -87,7 +87,7 @@
   <table id="leaderboardTable">
     <thead>
       <tr>
-        <th>User ID</th>
+        <th>Name</th>
         <th>Mode</th>
         <th>Time</th>
         <th>Accuracy (%)</th>
@@ -213,14 +213,14 @@ function endGame() {
   const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : 0;
   const points = correct * modePoints[difficulty];
 
-  document.getElementById("userInfo").textContent = `User ID: ${userId} | Mode: ${difficulty} | Time: ${timeMin} min`;
+  document.getElementById("userInfo").textContent = `Name: ${userId} | Mode: ${difficulty} | Time: ${timeMin} min`;
   document.getElementById("totalQ").textContent = `Total Questions: ${total}`;
   document.getElementById("correctQ").textContent = `Correct: ${correct}`;
   document.getElementById("wrongQ").textContent = `Wrong: ${wrong}`;
   document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
   document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
   document.getElementById("points").textContent = `Points: ${points}`;
-  document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
+  document.getElementById("avgTime").textContent = `Avg Time/Que: ${avgTime}s`;
 
   saveToLeaderboard(userId, difficulty, timeMin, accuracy, points);
 }
@@ -302,3 +302,4 @@ updateLeaderboard();
 
 </body>
 </html>
+
