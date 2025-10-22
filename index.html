@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Game</title>
+<title>Math Calc Game</title>
 <style>
     img {
         width: 100px;
@@ -31,8 +31,13 @@
 <img src="photo.jpg" alt="Harinath">
 
 <div class="container" id="setupScreen">
-  <h2>MATHS CALC GAME</h2>
+  <h1>MATHS CALC GAME</h1>
+  <h3>POINTS DISTRIBUTION</h3>
+  <h4>Easy - 10 |  Medium - 25 |  Hard - 200</h4> 
+  <h4>Pro - 500   |    Legend - 1000</h4>
+
   <p>Enter your Name, select difficulty, and start the challenge!</p>
+  
 
   <label>Name:</label>
   <input type="text" id="userId" placeholder="Name"><br>
@@ -192,7 +197,7 @@ function submitAnswer() {
 function skipQuestion() {
   total++;
   skipped++;
-  document.getElementById("feedback").textContent = `⏭️ Skipped! (Correct: ${currentAnswer})`;
+  document.getElementById("feedback").textContent = `⏭Skipped! (Correct: ${currentAnswer})`;
   nextQuestion(difficulty);
 }
 
@@ -274,10 +279,10 @@ function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + m
 function getRange(difficulty) {
   switch (difficulty) {
     case "easy": return [1, 10];
-    case "medium": return [1, 100];
-    case "hard": return [10, 1000];
-    case "pro": return [100, 1000];
-    case "legend": return [1000, 10000];
+    case "medium": return [10, 100];
+    case "hard": return [100, 1000];
+    case "pro": return [1000, 10000];
+    case "legend": return [10000, 100000];
   }
 }
 
