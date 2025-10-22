@@ -1,580 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Maths Calc Game</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Game</title>
 <style>
-  :root{
-    --bg:#0f1724;
-    --card:#0b1320;
-    --accent:#d64545;
-    --muted:#9aa4b2;
-    --glass: rgba(255,255,255,0.03);
-    --ok:#2ecc71;
-    --bad:#ff6b6b;
-    --btn-radius:10px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:Inter, "Segoe UI", Roboto, Arial;
-    background: linear-gradient(180deg,#071129 0%, #0b1220 100%);
-    color:#e6eef6;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:1100px;margin:18px auto;padding:18px;}
-  header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
-  header img{width:64px;height:64px;border-radius:14px;object-fit:cover;border:2px solid rgba(255,255,255,0.04)}
-  h1{margin:0;font-size:20px}
-  .top-row{display:flex;gap:12px;align-items:center;justify-content:space-between}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.02)}
-  .small{font-size:13px;color:var(--muted)}
-  label{display:block;margin-top:8px;color:var(--muted);font-size:13px}
-  input[type="text"], input[type="email"], input[type="number"], select{
-    width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);
-    background:transparent;color:inherit;font-size:15px;margin-top:6px;
-  }
-  button { cursor:pointer; border:0; padding:10px 14px;border-radius:var(--btn-radius); font-weight:600;}
-  .btn-start{ background: linear-gradient(90deg,#12c2a9,#19d1c0); color: #0b1220;}
-  .btn-red{ background:var(--accent); color:#fff;}
-  .btn-gray{ background:#2b3440;color:#fff;}
-  .controls{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
-  #gameScreen{margin-top:16px}
-  #question{font-size:30px;margin:18px 0}
-  #timer{font-weight:700;color:#fff}
-  .feedback{height:22px;margin-top:8px;font-weight:600}
-  .results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
-  table{width:100%;border-collapse:collapse;margin-top:12px;background:transparent}
-  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:center;font-size:14px}
-  th{color:var(--muted);font-weight:700}
-  .tabs{display:flex;gap:8px;margin-top:12px}
-  .tab{padding:8px 12px;border-radius:8px;background:var(--glass);cursor:pointer;color:var(--muted)}
-  .tab.active{background:linear-gradient(90deg,#0b1220,#14202b);color:#fff;border:1px solid rgba(255,255,255,0.03)}
-  .hide{display:none}
-  footer{margin-top:24px;color:var(--muted);font-size:13px;text-align:center}
-  @media (max-width:720px){
-    header{flex-direction:column;align-items:flex-start}
-    .top-row{flex-direction:column;align-items:stretch}
-  }
+    img {
+        width: 100px;
+        border-radius: 50px; 
+        margin-top: 15px;
+        object-fit: cover;
+    }
+
+    body { font-family: Arial, sans-serif; text-align: center; background: #f5f5f5; }
+    .container { margin-top: 40px; }
+    .hidden { display: none; }
+    input, select, button { padding: 8px; margin: 5px; font-size: 16px; }
+    #question { font-size: 28px; margin: 20px; }
+    #timer { font-weight: bold; }
+    .result-box { background: white; padding: 20px; display: inline-block; border-radius: 10px; }
+    .btn-red { background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+    .btn-gray { background-color: skyblue; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
+    table { margin: 20px auto; border-collapse: collapse; width: 90%; max-width: 800px; background: white; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #f0f0f0; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <img src="photo.jpg" alt="avatar" onerror="this.style.display='none'">
-    <div>
-      <h1>Maths Calc Game</h1>
-      <div class="small">Practice calculations · speed & accuracy · leaderboards</div>
-    </div>
-    <div style="margin-left:auto" id="signedInfo" class="small"></div>
-  </header>
 
-  <!-- Login Card -->
-  <div id="loginCard" class="card">
-    <h3>Sign in</h3>
-    <div class="small">Please sign in with your email (unique) and your display name. This will be stored locally on your device.</div>
-    <label>Email (unique)</label>
-    <input id="inpEmail" type="email" placeholder="you@example.com" />
-    <label>Name</label>
-    <input id="inpName" type="text" placeholder="Your display name" />
-    <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-      <button id="btnLogin" class="btn-start">Sign in</button>
-      <div class="small">Already signed in stays until you Quit App.</div>
-    </div>
+<img src="photo.jpg" alt="Harinath">
+
+<div class="container" id="setupScreen">
+  <h2>MATHS CALC GAME</h2>
+  <p>Enter your Name, select difficulty, and start the challenge!</p>
+
+  <label>Name:</label>
+  <input type="text" id="userId" placeholder="Name"><br>
+
+  <label>Difficulty:</label>
+  <select id="difficulty">
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+    <option value="pro">Pro</option>
+    <option value="legend">Legend</option>
+  </select><br>
+
+  <label>Time (minutes):</label>
+  <input type="number" id="time" placeholder="e.g. 2"><br>
+
+  <button onclick="startGame()" style="background-color: skyblue; color: red; font-weight: bold;">START</button>
+</div>
+
+<div class="container hidden" id="gameScreen">
+  <h3 id="timer">Time: 0s</h3>
+  <div id="question"></div>
+  <input type="number" id="answer" placeholder="Enter your answer" step="any"><br>
+  <button class="btn-red" onclick="submitAnswer()">Submit</button>
+  <button class="btn-gray" onclick="skipQuestion()">Skip</button>
+  <p id="feedback"></p>
+</div>
+
+<div class="container hidden" id="resultScreen">
+  <div class="result-box">
+    <h2>🧾 Results</h2>
+    <p id="userInfo"></p>
+    <p id="totalQ"></p>
+    <p id="correctQ"></p>
+    <p id="wrongQ"></p>
+    <p id="skippedQ"></p>
+    <p id="accuracy"></p>
+    <p id="points"></p>
+    <p id="avgTime"></p>
+    <button onclick="showMistakes()">Show Wrong Answers</button>
+    <button onclick="restart()">QUIT</button>
   </div>
+</div>
 
-  <!-- Setup Card -->
-  <div id="setupCard" class="card hide" style="margin-top:14px">
-    <h3>Setup</h3>
-    <div class="small">Choose mode & time (or play Daily Puzzle)</div>
-    <label>Mode</label>
-    <select id="selMode">
-      <option value="easy">Easy (1-digit)</option>
-      <option value="medium">Medium (2-digit)</option>
-      <option value="hard">Hard (3-digit)</option>
-      <option value="legend">Legend (4-digit)</option>
-      <option value="pro">Pro (5-digit)</option>
-    </select>
-
-    <label>Time (minutes)</label>
-    <input id="inpTime" type="number" min="1" value="2" />
-
-    <div style="margin-top:12px;display:flex;gap:10px;">
-      <button id="btnStart" class="btn-start">Start</button>
-      <button id="btnDaily" class="btn-gray">Play Daily Puzzle</button>
-      <button id="btnViewLB" class="btn-gray">View Leaderboards</button>
-    </div>
-  </div>
-
-  <!-- Game Card -->
-  <div id="gameCard" class="card hide" style="margin-top:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div class="small">Mode: <span id="playMode"></span></div>
-        <div class="small">Time set: <span id="playTimeSet"></span> min</div>
-      </div>
-      <div style="text-align:right">
-        <div id="timer" style="font-size:18px">Time: 0s</div>
-        <div class="small">Questions: <span id="qCount">0</span></div>
-      </div>
-    </div>
-
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.04);margin:12px 0">
-
-    <div id="question" style="min-height:36px;"></div>
-    <input id="inpAns" type="number" step="any" placeholder="Type your answer" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit" />
-    <div style="margin-top:10px" class="controls">
-      <button id="btnSubmit" class="btn-red">Submit</button>
-      <button id="btnSkip" class="btn-gray">Skip</button>
-      <button id="btnPause" class="btn-gray">Pause</button>
-      <button id="btnResume" class="btn-start hide">Resume</button>
-      <button id="btnQuit" class="btn-gray">Quit</button>
-      <div id="feedback" class="feedback"></div>
-    </div>
-  </div>
-
-  <!-- Results Card -->
-  <div id="resultCard" class="card hide" style="margin-top:16px">
-    <h3>Results</h3>
-    <div id="userSummary" class="small"></div>
-    <div class="results-grid">
-      <div class="card small"><strong id="resTotal">0</strong><div>Total Questions</div></div>
-      <div class="card small"><strong id="resCorrect">0</strong><div>Correct</div></div>
-      <div class="card small"><strong id="resWrong">0</strong><div>Wrong</div></div>
-      <div class="card small"><strong id="resSkipped">0</strong><div>Skipped</div></div>
-      <div class="card small"><strong id="resAccuracy">0%</strong><div>Accuracy</div></div>
-      <div class="card small"><strong id="resPoints">0</strong><div>Points</div></div>
-    </div>
-    <div style="margin-top:12px;display:flex;gap:8px">
-      <button id="btnShowMistakes" class="btn-gray">Wrongly Answered Questions</button>
-      <button id="btnBackSetup" class="btn-start">Back to Setup</button>
-    </div>
-  </div>
-
-  <!-- Leaderboards -->
-  <div id="leaderboardCards" class="card" style="margin-top:16px">
-    <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
-      <div class="tabs">
-        <div id="tabMain" class="tab active">Main Leaderboard</div>
-        <div id="tabDaily" class="tab">Daily Puzzle Leaderboard</div>
-      </div>
-      <div class="small">Sorted by <strong>Total Points</strong></div>
-    </div>
-
-    <div id="mainBoard" style="margin-top:12px">
-      <table>
-        <thead>
-          <tr><th>Name</th><th>Mode</th><th>Time</th><th>Accuracy (%)</th><th>Points</th><th>Total Points</th></tr>
-        </thead>
-        <tbody id="mainBody"></tbody>
-      </table>
-    </div>
-
-    <div id="dailyBoard" class="hide" style="margin-top:12px">
-      <div class="small">Daily puzzle: <span id="dailySeedLabel"></span> — 3 minutes challenge</div>
-      <table>
-        <thead>
-          <tr><th>Name</th><th>Points</th><th>Accuracy (%)</th><th>Time Played</th></tr>
-        </thead>
-        <tbody id="dailyBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <footer>
-    Built for practice — data stored locally in your browser.
-  </footer>
+<div class="container" id="leaderboardSection">
+  <h2>🏆 Leaderboard</h2>
+  <table id="leaderboardTable">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Mode</th>
+        <th>Time</th>
+        <th>Accuracy (%)</th>
+        <th>Points</th>
+        <th>Total Points</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
 </div>
 
 <script>
-/* ---------- Utilities ---------- */
-function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-function fmt2(v){ return Number(Math.round(v*100)/100).toFixed(2); }
+let timerInterval, remainingTime;
+let correct = 0, wrong = 0, total = 0, skipped = 0, startTime;
+let currentAnswer, currentQuestion;
+let userId, difficulty, timeMin;
+let mistakes = [];
 
-/* ---------- User / Storage ---------- */
-const STORAGE_USERS = "mcg_users_v1"; // mapping email -> user object
-const STORAGE_MAIN = "mcg_main_sessions_v1"; // array of sessions
-const STORAGE_DAILY = "mcg_daily_v1"; // object keyed by date -> array of daily entries
+const modePoints = { easy: 10, medium: 50, hard: 200, pro: 500, legend: 1000 };
 
-let currentUser = null; // {email,name,totalPoints}
-let gameState = null; // hold runtime state for resume
+function startGame() {
+  userId = document.getElementById("userId").value.trim();
+  difficulty = document.getElementById("difficulty").value;
+  timeMin = document.getElementById("time").value;
 
-function loadUsers(){
-  return JSON.parse(localStorage.getItem(STORAGE_USERS) || "{}");
-}
-function saveUsers(obj){ localStorage.setItem(STORAGE_USERS, JSON.stringify(obj)); }
+  if (!userId) { alert("Please enter your Name!"); return; }
+  if (!timeMin) { alert("Please enter time!"); return; }
 
-function loadMainSessions(){
-  return JSON.parse(localStorage.getItem(STORAGE_MAIN) || "[]");
-}
-function saveMainSessions(arr){ localStorage.setItem(STORAGE_MAIN, JSON.stringify(arr)); }
+  const existingData = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  // if (existingData.some(x => x.userId === userId)) {
+  //   alert("This ID already exists. Please choose a different one.");
+  //   return;
+  // }
 
-function loadDaily(){
-  return JSON.parse(localStorage.getItem(STORAGE_DAILY) || "{}");
-}
-function saveDaily(obj){ localStorage.setItem(STORAGE_DAILY, JSON.stringify(obj)); }
+  document.getElementById("setupScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  document.getElementById("leaderboardSection").classList.add("hidden");
 
-/* ---------- Login ---------- */
-const loginCard = document.getElementById("loginCard");
-const setupCard = document.getElementById("setupCard");
-const gameCard = document.getElementById("gameCard");
-const resultCard = document.getElementById("resultCard");
-
-const inpEmail = document.getElementById("inpEmail");
-const inpName = document.getElementById("inpName");
-const btnLogin = document.getElementById("btnLogin");
-const signedInfo = document.getElementById("signedInfo");
-
-btnLogin.addEventListener("click", ()=>{
-  const email = (inpEmail.value||"").trim().toLowerCase();
-  const name = (inpName.value||"").trim();
-  if(!email || !name){ alert("Please enter email and name."); return; }
-  // simple email format check
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ alert("Enter valid email."); return; }
-  let users = loadUsers();
-  if(!users[email]){ users[email] = { email, name, totalPoints:0 }; saveUsers(users); }
-  currentUser = users[email];
-  signedInfo.textContent = `Signed in: ${currentUser.name} (${currentUser.email})`;
-  loginCard.classList.add("hide");
-  setupCard.classList.remove("hide");
-  updateMainLeaderboard();
-  updateDailyBoard();
-});
-
-/* ---------- Setup ---------- */
-const selMode = document.getElementById("selMode");
-const inpTime = document.getElementById("inpTime");
-const btnStart = document.getElementById("btnStart");
-const btnDaily = document.getElementById("btnDaily");
-const btnViewLB = document.getElementById("btnViewLB");
-
-btnStart.addEventListener("click", ()=>{
-  if(!currentUser){ alert("Please sign in first."); return; }
-  const mode = selMode.value;
-  const tm = parseInt(inpTime.value);
-  if(!tm || tm<=0){ alert("Enter time in minutes."); return; }
-  startPlay({ mode, timeMin: tm, isDaily:false });
-});
-
-btnDaily.addEventListener("click", ()=>{
-  if(!currentUser){ alert("Please sign in first."); return; }
-  // daily puzzle: 3 minutes, random mode (seeded)
-  const today = new Date().toISOString().slice(0,10);
-  const modes = ["easy","medium","hard","legend","pro"];
-  // deterministic pick by date
-  const idx = (Number(today.replace(/-/g,"")) % modes.length);
-  const mode = modes[idx];
-  startPlay({ mode, timeMin: 3, isDaily:true, dailySeed: today });
-});
-
-btnViewLB.addEventListener("click", ()=>{
-  loginCard.classList.add("hide");
-  setupCard.classList.remove("hide");
-  gameCard.classList.add("hide");
-  resultCard.classList.add("hide");
-  document.getElementById("leaderboardCards").scrollIntoView({behavior:"smooth"});
-});
-
-/* ---------- Game logic ---------- */
-const playModeLabel = document.getElementById("playMode");
-const playTimeSet = document.getElementById("playTimeSet");
-const timerLabel = document.getElementById("timer");
-const qCountLabel = document.getElementById("qCount");
-const questionEl = document.getElementById("question");
-const inpAns = document.getElementById("inpAns");
-const btnSubmit = document.getElementById("btnSubmit");
-const btnSkip = document.getElementById("btnSkip");
-const btnPause = document.getElementById("btnPause");
-const btnResume = document.getElementById("btnResume");
-const btnQuit = document.getElementById("btnQuit");
-const feedback = document.getElementById("feedback");
-
-const pointsFor = { easy:10, medium:20, hard:100, legend:500, pro:1000 };
-
-btnSubmit.addEventListener("click", onSubmit);
-btnSkip.addEventListener("click", onSkip);
-btnPause.addEventListener("click", onPause);
-btnResume.addEventListener("click", onResume);
-btnQuit.addEventListener("click", ()=>{ if(confirm("Quit now? Your current score will be saved.")){ endGame(true); } });
-
-function startPlay({mode, timeMin, isDaily=false, dailySeed=null}){
-  // hide leaderboard during play
-  document.getElementById("leaderboardCards").classList.add("hide");
-  setupCard.classList.add("hide");
-  resultCard.classList.add("hide");
-  gameCard.classList.remove("hide");
-
-  playModeLabel.textContent = mode;
-  playTimeSet.textContent = timeMin;
-  qCountLabel.textContent = "0";
-  feedback.textContent = "";
-  inpAns.value = "";
-
-  gameState = {
-    mode, timeMin, isDaily, dailySeed: dailySeed || null,
-    remaining: timeMin*60, timerId:null, qCount:0,
-    correct:0, wrong:0, skipped:0, totalPoints:0, mistakes:[], startedAt:Date.now(), paused:false
-  };
-
-  // For daily puzzle, create deterministic sequence based on seed
-  if(isDaily){
-    gameState.dailySequence = generateDailySequence(gameState.dailySeed, 20); // 20 q's
-    gameState.dailyIndex = 0;
-  }
+  remainingTime = parseInt(timeMin) * 60;
+  startTime = new Date();
 
   startTimer();
-  nextQ();
+  nextQuestion(difficulty);
 }
 
-/* Timer */
-function startTimer(){
-  if(gameState.timerId) clearInterval(gameState.timerId);
-  timerLabel.textContent = `Time: ${gameState.remaining}s`;
-  gameState.timerId = setInterval(()=>{
-    if(!gameState.paused){
-      gameState.remaining--;
-      timerLabel.textContent = `Time: ${gameState.remaining}s`;
-      if(gameState.remaining<=0){ clearInterval(gameState.timerId); endGame(false); }
-    }
-  },1000);
+function startTimer() {
+  const timerDisplay = document.getElementById("timer");
+  timerDisplay.textContent = `Time: ${remainingTime}s`;
+
+  timerInterval = setInterval(() => {
+    remainingTime--;
+    timerDisplay.textContent = `Time: ${remainingTime}s`;
+    if (remainingTime <= 0) endGame();
+  }, 1000);
 }
-function pauseTimer(){ gameState.paused = true; btnPause.classList.add("hide"); btnResume.classList.remove("hide"); }
-function resumeTimer(){ gameState.paused = false; btnPause.classList.remove("hide"); btnResume.classList.add("hide"); }
 
-function onPause(){ pauseTimer(); feedback.textContent = "⏸️ Paused"; }
-function onResume(){ resumeTimer(); feedback.textContent = ""; inpAns.focus(); }
+function nextQuestion(difficulty) {
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").textContent = "";
 
-/* question generation */
-function nextQ(){
-  inpAns.value = "";
-  feedback.textContent = "";
-  gameState.qCount++;
-  qCountLabel.textContent = gameState.qCount;
+  const [min, max] = getRange(difficulty);
+  let questionText, answer;
 
-  let qtext, ans;
+  const type = rand(0, 4);
+  let n1 = rand(min, max), n2 = rand(min, max);
 
-  if(gameState.isDaily){
-    const seq = gameState.dailySequence[gameState.dailyIndex % gameState.dailySequence.length];
-    qtext = seq.q;
-    ans = seq.a;
-    gameState.dailyIndex++;
+  switch (type) {
+    case 0: questionText = `${n1} + ${n2}`; answer = n1 + n2; break;
+    case 1: if (n2 > n1) [n1, n2] = [n2, n1]; questionText = `${n1} - ${n2}`; answer = n1 - n2; break;
+    case 2: questionText = `${n1} × ${n2}`; answer = n1 * n2; break;
+    case 3: case 3: // Division (show integer ÷ integer, but answer can be decimal)
+  n1 = rand(min, max);
+  n2 = rand(2, 9);
+  questionText = `${n1} ÷ ${n2}`;
+  answer = parseFloat((n1 / n2).toFixed(2)); // store up to 2 decimals
+  break;
+
+    case 4: const sq = rand(min, max); questionText = `√${sq * sq}`; answer = sq; break;
+  }
+
+  currentQuestion = questionText;
+  currentAnswer = answer;
+  document.getElementById("question").textContent = questionText;
+}
+
+function submitAnswer() {
+  const userAns = parseFloat(document.getElementById("answer").value);
+  if (isNaN(userAns)) return;
+
+  total++;
+  const correctAns = Math.round(currentAnswer * 100) / 100;
+  const userRounded = Math.round(userAns * 100) / 100;
+
+  if (Math.abs(userAns.toFixed(2) - currentAnswer.toFixed(2)) < 0.02) {
+
+    correct++;
+    document.getElementById("feedback").textContent = "Correct!";
   } else {
-    const [min,max] = getRange(gameState.mode);
-    const type = rand(0,4);
-    let n1 = rand(min,max), n2 = rand(min,max);
-    switch(type){
-      case 0: qtext = `${n1} + ${n2}`; ans = n1 + n2; break;
-      case 1: if(n2>n1) [n1,n2]=[n2,n1]; qtext=`${n1} - ${n2}`; ans = n1 - n2; break;
-      case 2: qtext=`${n1} × ${n2}`; ans = n1 * n2; break;
-      case 3:
-        n1 = rand(min,max); n2 = rand(2,9);
-        qtext = `${n1} ÷ ${n2}`;
-        ans = parseFloat((n1 / n2).toFixed(4)); // keep precision internally
-        break;
-      case 4:
-        const sq = rand(min,max);
-        qtext = `√${sq*sq}`;
-        ans = sq; break;
-    }
+    wrong++;
+    document.getElementById("feedback").textContent = `Wrong! (Correct: ${correctAns})`;
+    mistakes.push({ q: currentQuestion, correct: correctAns, user: userRounded });
   }
-  currentQuestion = qtext;
-  currentAnswer = ans;
-  questionEl.textContent = qtext;
+
+  nextQuestion(difficulty);
 }
 
-/* getRange */
-function getRange(mode){
-  switch(mode){
-    case "easy": return [1,9];
-    case "medium": return [10,99];
-    case "hard": return [100,999];
-    case "legend": return [1000,9999];
-    case "pro": return [10000,99999];
+function skipQuestion() {
+  total++;
+  skipped++;
+  document.getElementById("feedback").textContent = `⏭️ Skipped! (Correct: ${currentAnswer})`;
+  nextQuestion(difficulty);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
+  document.getElementById("leaderboardSection").classList.remove("hidden");
+
+  const elapsedTime = (new Date() - startTime) / 1000;
+  const answered = total - skipped;
+  const avgTime = answered > 0 ? (elapsedTime / answered).toFixed(2) : 0;
+  const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : 0;
+  const points = correct * modePoints[difficulty];
+
+  document.getElementById("userInfo").textContent = `User ID: ${userId} | Mode: ${difficulty} | Time: ${timeMin} min`;
+  document.getElementById("totalQ").textContent = `Total Questions: ${total}`;
+  document.getElementById("correctQ").textContent = `Correct: ${correct}`;
+  document.getElementById("wrongQ").textContent = `Wrong: ${wrong}`;
+  document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
+  document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
+  document.getElementById("points").textContent = `Points: ${points}`;
+  document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
+
+  saveToLeaderboard(userId, difficulty, timeMin, accuracy, points);
+}
+
+function showMistakes() {
+  if (mistakes.length === 0) {
+    alert("No mistakes! 🎉");
+    return;
   }
-}
-
-/* Submit / skip */
-function onSubmit(){
-  if(!gameState || gameState.paused) return;
-  const val = parseFloat(inpAns.value);
-  if(isNaN(val)) return;
-  gameState.total = (gameState.total||0)+1;
-  let userRounded = Math.round(val*100)/100;
-  let correctRounded = Math.round(currentAnswer*100)/100;
-  // Accept ±0.01 around 2-decimal rounded answer
-  const isCorrect = Math.abs(userRounded - correctRounded) <= 0.01;
-  if(isCorrect){
-    gameState.correct++;
-    const pts = pointsFor[gameState.mode] || 10;
-    gameState.totalPoints += pts;
-  } else {
-    gameState.wrong++;
-    gameState.mistakes.push({ q: currentQuestion, correct: correctRounded, user: userRounded });
-  }
-  feedback.textContent = isCorrect ? "✅ Correct" : `❌ Wrong (Correct: ${correctRounded})`;
-  nextQ();
-}
-function onSkip(){
-  if(!gameState || gameState.paused) return;
-  gameState.skipped++;
-  gameState.total = (gameState.total||0)+1;
-  gameState.mistakes.push({ q: currentQuestion, correct: Math.round(currentAnswer*100)/100, user: "skipped" });
-  feedback.textContent = `⏭ Skipped (Correct: ${Math.round(currentAnswer*100)/100})`;
-  nextQ();
-}
-
-/* End game (quitFlag indicates user quit early) */
-function endGame(quitFlag=false){
-  if(!gameState) return;
-  if(gameState.timerId) clearInterval(gameState.timerId);
-  gameCard.classList.add("hide");
-  resultCard.classList.remove("hide");
-  document.getElementById("leaderboardCards").classList.remove("hide");
-  // compute stats
-  const elapsed = (Date.now() - gameState.startedAt)/1000;
-  const totalAnswered = (gameState.total||0) - gameState.skipped;
-  const accuracy = totalAnswered>0 ? ((gameState.correct/totalAnswered)*100).toFixed(2) : "0.00";
-  // points already computed
-  document.getElementById("resTotal").textContent = (gameState.total||0);
-  document.getElementById("resCorrect").textContent = gameState.correct||0;
-  document.getElementById("resWrong").textContent = gameState.wrong||0;
-  document.getElementById("resSkipped").textContent = gameState.skipped||0;
-  document.getElementById("resAccuracy").textContent = `${accuracy}%`;
-  document.getElementById("resPoints").textContent = gameState.totalPoints||0;
-  document.getElementById("userSummary").textContent = `${currentUser.name} (${currentUser.email}) • Mode: ${gameState.mode} • Time set: ${gameState.timeMin} min${gameState.isDaily ? ' • Daily Puzzle' : ''}${quitFlag ? ' • Quit early':' '}`;
-
-  // save session to main sessions and update user total points
-  saveSession(currentUser.email, currentUser.name, gameState);
-  updateMainLeaderboard();
-  if(gameState.isDaily) saveDailyEntry(currentUser, gameState);
-
-  // keep mistake list in memory; button will show it
-}
-
-/* Save session to main sessions and accumulate total points */
-function saveSession(email, name, gs){
-  const sessions = loadMainSessions();
-  const sessionRecord = {
-    email, name, mode: gs.mode, time: gs.timeMin, points: gs.totalPoints, accuracy: ( ( (gs.total || 0) - gs.skipped ) > 0 ? ((gs.correct/((gs.total||0)-gs.skipped))*100).toFixed(2) : "0.00"), timestamp: Date.now()
-  };
-  sessions.push(sessionRecord);
-  saveMainSessions(sessions);
-  // update user total
-  const users = loadUsers();
-  if(!users[email]) users[email] = { email, name, totalPoints: 0 };
-  users[email].totalPoints = (users[email].totalPoints||0) + sessionRecord.points;
-  saveUsers(users);
-}
-
-/* Daily puzzle storage */
-function saveDailyEntry(user, gs){
-  const dateKey = gs.dailySeed; // yyyy-mm-dd
-  const dailyObj = loadDaily();
-  if(!dailyObj[dateKey]) dailyObj[dateKey] = [];
-  dailyObj[dateKey].push({ email: user.email, name: user.name, points: gs.totalPoints, accuracy: ( ( (gs.total || 0) - gs.skipped ) > 0 ? ((gs.correct/((gs.total||0)-gs.skipped))*100).toFixed(2) : "0.00"), time: gs.timeMin, timestamp: Date.now() });
-  saveDaily(dailyObj);
-  updateDailyBoard();
-}
-
-/* Mistakes display */
-const btnShowMistakes = document.getElementById("btnShowMistakes");
-btnShowMistakes.addEventListener("click", ()=>{
-  if(!gameState || !gameState.mistakes || gameState.mistakes.length===0){ alert("No mistakes!"); return; }
-  let s = "Your wrong answers:\n\n";
-  gameState.mistakes.forEach((m,i)=> s += `${i+1}. ${m.q}\nYour: ${m.user}  Correct: ${m.correct}\n\n`);
-  alert(s);
-});
-
-/* ---------- Leaderboards ---------- */
-const mainBody = document.getElementById("mainBody");
-const dailyBody = document.getElementById("dailyBody");
-const tabMain = document.getElementById("tabMain");
-const tabDaily = document.getElementById("tabDaily");
-const dailySeedLabel = document.getElementById("dailySeedLabel");
-
-tabMain.addEventListener("click", ()=>{ tabMain.classList.add("active"); tabDaily.classList.remove("active"); document.getElementById("mainBoard").classList.remove("hide"); document.getElementById("dailyBoard").classList.add("hide"); });
-tabDaily.addEventListener("click", ()=>{ tabDaily.classList.add("active"); tabMain.classList.remove("active"); document.getElementById("mainBoard").classList.add("hide"); document.getElementById("dailyBoard").classList.remove("hide"); });
-
-function updateMainLeaderboard(){
-  const users = loadUsers();
-  // create array ordered by totalPoints desc
-  const arr = Object.keys(users).map(k => ({ email: users[k].email, name: users[k].name, totalPoints: users[k].totalPoints || 0 }));
-  arr.sort((a,b)=> b.totalPoints - a.totalPoints);
-  mainBody.innerHTML = "";
-  const sessions = loadMainSessions();
-  arr.forEach(u=>{
-    // find latest session points/time/mode for display (optional) - show totalPoints
-    const last = sessions.slice().reverse().find(s=>s.email===u.email) || {};
-    const row = `<tr><td>${u.name}</td><td>${last.mode || '-'}</td><td>${last.time ? last.time + ' min' : '-'}</td><td>${last.accuracy || '-'}</td><td>${last.points || 0}</td><td>${u.totalPoints}</td></tr>`;
-    mainBody.innerHTML += row;
+  let msg = "Your Mistakes:\n\n";
+  mistakes.forEach((m, i) => {
+    msg += `${i + 1}. ${m.q}\nYour Answer: ${m.user} | Correct: ${m.correct}\n\n`;
   });
-  document.getElementById("leaderboardCards").classList.remove("hide");
+  alert(msg);
 }
 
-/* Daily board */
-function updateDailyBoard(){
-  const dailyObj = loadDaily();
-  const today = new Date().toISOString().slice(0,10);
-  dailySeedLabel.textContent = today;
-  const arr = dailyObj[today] || [];
-  // sort by points desc
-  arr.sort((a,b)=> b.points - a.points);
-  dailyBody.innerHTML = "";
-  arr.forEach(e=>{
-    const row = `<tr><td>${e.name}</td><td>${e.points}</td><td>${e.accuracy}</td><td>${e.time} min</td></tr>`;
-    dailyBody.innerHTML += row;
+function saveToLeaderboard(userId, mode, time, accuracy, points) {
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  let existing = leaderboard.find(u => u.userId === userId);
+
+  if (existing) {
+    existing.totalPoints += points;
+  } else {
+    existing = { userId, mode, time, accuracy, points, totalPoints: points };
+    leaderboard.push(existing);
+  }
+
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+  updateLeaderboard();
+}
+
+function updateLeaderboard() {
+  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+  leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
+  const body = document.getElementById("leaderboardBody");
+  body.innerHTML = "";
+  leaderboard.forEach(u => {
+    const row = `<tr>
+      <td>${u.userId}</td>
+      <td>${u.mode}</td>
+      <td>${u.time} min</td>
+      <td>${u.accuracy}</td>
+      <td>${u.points}</td>
+      <td>${u.totalPoints}</td>
+    </tr>`;
+    body.innerHTML += row;
   });
 }
 
-/* ---------- Daily sequence generator (deterministic by seed) ---------- */
-function generateDailySequence(seedDate, count){
-  // simple LCG PRNG seeded by date string
-  let seed = 0;
-  for(let i=0;i<seedDate.length;i++) seed = (seed*31 + seedDate.charCodeAt(i)) % 1000000007;
-  let randLCG = ()=>{ seed = (seed * 1664525 + 1013904223) % 4294967296; return seed; }
-  const modes = ["easy","medium","hard","legend","pro"];
-  const seq = [];
-  for(let i=0;i<count;i++){
-    const r = randLCG();
-    const mode = modes[r % modes.length];
-    const [min,max] = getRange(mode);
-    const t = r % 5; // question type
-    let q,a;
-    if(t===0){ const n1 = (randLCG()% (max-min+1))+min; const n2 = (randLCG()% (max-min+1))+min; q=`${n1} + ${n2}`; a = n1+n2; }
-    else if(t===1){ let n1=(randLCG()% (max-min+1))+min; let n2=(randLCG()% (max-min+1))+min; if(n2>n1) [n1,n2]=[n2,n1]; q=`${n1} - ${n2}`; a=n1-n2; }
-    else if(t===2){ const n1=(randLCG()% (max-min+1))+min; const n2=(randLCG()% (max-min+1))+min; q=`${n1} × ${n2}`; a=n1*n2; }
-    else if(t===3){ const n1=(randLCG()% (max-min+1))+min; const n2=(randLCG()% 8)+2; q=`${n1} ÷ ${n2}`; a = parseFloat((n1/n2).toFixed(4)); }
-    else { const sq=(randLCG()% (max-min+1))+min; q=`√${sq*sq}`; a=sq; }
-    seq.push({q:a!==undefined? q : '', a});
+function restart() {
+  location.reload();
+}
+
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function getRange(difficulty) {
+  switch (difficulty) {
+    case "easy": return [1, 10];
+    case "medium": return [1, 100];
+    case "hard": return [10, 1000];
+    case "pro": return [100, 1000];
+    case "legend": return [1000, 10000];
   }
-  return seq;
 }
 
-/* ---------- Helpers ---------- */
-function resetToSetup(){
-  gameState=null;
-  gameCard.classList.add("hide");
-  resultCard.classList.add("hide");
-  setupCard.classList.remove("hide");
-  document.getElementById("leaderboardCards").classList.remove("hide");
-  updateMainLeaderboard();
+function getCleanDivision(min, max) {
+  let a, b;
+  for (let i = 0; i < 100; i++) {
+    a = rand(min, max);
+    b = rand(2, 9);
+    if (a % b === 0 || b < 10) break;
+  }
+  return [a, b];
 }
 
-/* ---------- Start-of-page: show login or setup depending if user exists ---------- */
-(function init(){
-  const users = loadUsers();
-  // if there's any user in storage and none currently signed in, do not auto sign-in; require manual login for now
-  // show login card
-  loginCard.classList.remove("hide");
-  setupCard.classList.add("hide");
-  gameCard.classList.add("hide");
-  resultCard.classList.add("hide");
-  updateMainLeaderboard();
-  updateDailyBoard();
-})();
-
+// Initial load leaderboard
+updateLeaderboard();
 </script>
+
 </body>
 </html>
