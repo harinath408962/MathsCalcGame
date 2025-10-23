@@ -1,19 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Calc Game</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MATHS CALC GAME (Firebase)</title>
 <style>
-    img {
-        width: 100px;
-        border-radius: 50px; 
-        margin-top: 15px;
-        object-fit: cover;
-    }
-
-    body { font-family: Arial, sans-serif; text-align: center; background: #f5f5f5; }
-    .container { margin-top: 40px; }
+    img { width: 100px; border-radius: 50px; margin-top: 15px; object-fit: cover; }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f5f5f5; margin:0; padding:20px; }
+    .container { margin-top: 20px; }
     .hidden { display: none; }
     input, select, button { padding: 8px; margin: 5px; font-size: 16px; }
     #question { font-size: 28px; margin: 20px; }
@@ -21,9 +15,14 @@
     .result-box { background: white; padding: 20px; display: inline-block; border-radius: 10px; }
     .btn-red { background-color: red; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
     .btn-gray { background-color: skyblue; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer;}
-    table { margin: 20px auto; border-collapse: collapse; width: 90%; max-width: 800px; background: white; }
+    table { margin: 20px auto; border-collapse: collapse; width: 95%; max-width: 1000px; background: white; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
     th { background: #f0f0f0; }
+    .tabs { display:flex; justify-content:center; gap:10px; margin-top:10px; }
+    .tab { padding:8px 12px; background:#eee; border-radius:8px; cursor:pointer; }
+    .tab.active { background:#b3e5fc; }
+    .top-row { display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+    .small { font-size:13px; color:#666; }
 </style>
 </head>
 <body>
@@ -37,7 +36,6 @@
   <h4>Pro - 500   |    Legend - 1000</h4>
 
   <p>Enter your Name, select difficulty, and start the challenge!</p>
-  
 
   <label>Name:</label>
   <input type="text" id="userId" placeholder="Name"><br>
@@ -54,11 +52,18 @@
   <label>Time (minutes):</label>
   <input type="number" id="time" placeholder="e.g. 2"><br>
 
-  <button onclick="startGame()" style="background-color: skyblue; color: red; font-weight: bold;">START</button>
+  <button id="startBtn" onclick="startGame()" style="background-color: skyblue; color: red; font-weight: bold;">START</button>
+  <br>
+  <!-- Daily Puzzle button -->
+  <button id="dailyBtn" onclick="startDaily()" style="background-color:#ffd54f; color:#000; font-weight:bold; margin-top:8px;">Play Daily Puzzle</button>
+
 </div>
 
 <div class="container hidden" id="gameScreen">
-  <h3 id="timer">Time: 0s</h3>
+  <div class="top-row">
+    <h3 id="timer">Time: 0s</h3>
+    <div class="small" id="playInfo"></div>
+  </div>
   <div id="question"></div>
   <input type="number" id="answer" placeholder="Enter your answer" step="any"><br>
   <button class="btn-red" onclick="submitAnswer()">Submit</button>
@@ -78,228 +83,524 @@
     <p id="points"></p>
     <p id="avgTime"></p>
     <button onclick="showMistakes()">Show Wrong Answers</button>
-    <button onclick="restart()">QUIT</button>
+    <button onclick="backToSetup()">Back to Setup</button>
   </div>
 </div>
 
+<!-- Leaderboard area with tabs -->
 <div class="container" id="leaderboardSection">
-  <h2>🏆 Leaderboard</h2>
-  <table id="leaderboardTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Mode</th>
-        <th>Time</th>
-        <th>Accuracy (%)</th>
-        <th>Points</th>
-        <th>Total Points</th>
-      </tr>
-    </thead>
-    <tbody id="leaderboardBody"></tbody>
-  </table>
+  <div class="tabs">
+    <div id="tabMain" class="tab active" onclick="showTab('main')">🏆 Main Leaderboard</div>
+    <div id="tabDaily" class="tab" onclick="showTab('daily')">📅 Daily Leaderboard</div>
+  </div>
+
+  <!-- Filters for main board -->
+  <div id="mainControls" style="margin-top:10px; display:flex; justify-content:center; gap:10px; align-items:center;">
+    <label>Filter mode:</label>
+    <select id="filterMode" onchange="updateMainBoard()">
+      <option value="all">All</option>
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+      <option value="pro">Pro</option>
+      <option value="legend">Legend</option>
+      <option value="daily">DailyPuzzle</option>
+    </select>
+
+    <button onclick="sortByTotalPoints()">Sort by Total Points</button>
+  </div>
+
+  <div id="mainBoard" style="margin-top:12px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Mode</th><th>Time</th><th>Accuracy (%)</th><th>Points</th><th>Total Points</th><th>When</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
+  </div>
+
+  <div id="dailyBoard" class="hidden" style="margin-top:12px;">
+    <div class="small">Daily puzzle: <span id="dailySeedLabel"></span> — 3 minutes challenge</div>
+    <button style="margin-top:8px;" onclick="adminResetDaily()">Reset Today's Daily (admin)</button>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Points</th><th>Accuracy (%)</th><th>Time Played (min)</th><th>When</th></tr>
+      </thead>
+      <tbody id="dailyBody"></tbody>
+    </table>
+  </div>
 </div>
 
+<!-- Firebase SDKs (v8 namespaced) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <script>
-let timerInterval, remainingTime;
+/* =========================
+   Paste your firebaseConfig here
+   (you gave it earlier)
+   ========================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCHYJ_B_veakWBfyu04ET-IIsAV_ysh390",
+  authDomain: "math-calc-game.firebaseapp.com",
+  databaseURL: "https://math-calc-game-default-rtdb.firebaseio.com",
+  projectId: "math-calc-game",
+  storageBucket: "math-calc-game.firebasestorage.app",
+  messagingSenderId: "1054274296637",
+  appId: "1:1054274296637:web:7b1d52f63b30afd93e0354",
+  measurementId: "G-RBYQPPQH02"
+};
+
+// Initialize Firebase (v8)
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ---------- Variables ---------- */
+let timerInterval = null;
+let remainingTime = 0;
 let correct = 0, wrong = 0, total = 0, skipped = 0, startTime;
-let currentAnswer, currentQuestion;
-let userId, difficulty, timeMin;
+let currentAnswer = null, currentQuestion = null;
+let userId = "", difficulty = "easy", timeMin = 1;
 let mistakes = [];
+const modePoints = { easy: 10, medium: 25, hard: 200, pro: 500, legend: 1000 }; // keep same as your UI
 
-const modePoints = { easy: 10, medium: 50, hard: 200, pro: 500, legend: 1000 };
+let playingDaily = false;
+let dailySeed = null; // date string yyyy-mm-dd
+let dailyQuestions = []; // array of {q,a}
+let dailyIndex = 0;
 
-function startGame() {
+/* ---------- UI helpers ---------- */
+function show(el){ document.getElementById(el).classList.remove('hidden'); }
+function hide(el){ document.getElementById(el).classList.add('hidden'); }
+
+/* ---------- Start regular game ---------- */
+function startGame(){
   userId = document.getElementById("userId").value.trim();
   difficulty = document.getElementById("difficulty").value;
-  timeMin = document.getElementById("time").value;
+  timeMin = parseInt(document.getElementById("time").value);
 
-  if (!userId) { alert("Please enter your Name!"); return; }
-  if (!timeMin) { alert("Please enter time!"); return; }
+  if(!userId){ alert("Please enter your Name!"); return; }
+  if(!timeMin || timeMin <= 0){ alert("Please enter valid time!"); return; }
 
-  const existingData = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-  // if (existingData.some(x => x.userId === userId)) {
-  //   alert("This ID already exists. Please choose a different one.");
-  //   return;
-  // }
+  playingDaily = false;
+  resetGameState();
+  hide('setupScreen'); show('gameScreen'); hide('leaderboardSection'); hide('resultScreen');
 
-  document.getElementById("setupScreen").classList.add("hidden");
-  document.getElementById("gameScreen").classList.remove("hidden");
-  document.getElementById("leaderboardSection").classList.add("hidden");
-
-  remainingTime = parseInt(timeMin) * 60;
+  remainingTime = timeMin * 60;
   startTime = new Date();
-
+  document.getElementById('playInfo').textContent = `${userId} • Mode: ${difficulty}`;
   startTimer();
   nextQuestion(difficulty);
 }
 
-function startTimer() {
-  const timerDisplay = document.getElementById("timer");
-  timerDisplay.textContent = `Time: ${remainingTime}s`;
+/* ---------- Start Daily Puzzle ---------- */
+function startDaily(){
+  userId = document.getElementById("userId").value.trim();
+  if(!userId){ alert("Please enter your Name!"); return; }
 
-  timerInterval = setInterval(() => {
-    remainingTime--;
-    timerDisplay.textContent = `Time: ${remainingTime}s`;
-    if (remainingTime <= 0) endGame();
-  }, 1000);
+  playingDaily = true;
+  difficulty = "daily"; // mark mode
+  timeMin = 3; // fixed 3 minutes
+
+  // Today's date
+  dailySeed = new Date().toISOString().slice(0,10);
+
+  // Check in DB if user has already played today
+  const playedRef = db.ref(`dailyPlayed/${dailySeed}/${sanitizeKey(userId)}`);
+  playedRef.once('value').then(snapshot => {
+    if(snapshot.exists()){
+      alert("You have already played today's Daily Puzzle! Try again tomorrow.");
+      return;
+    } else {
+      // ensure daily question set exists (create if not)
+      ensureDailyQuestions(dailySeed).then(() => {
+        // mark as played (we'll mark after saving session too, but mark here to block re-entering quickly)
+        // We will mark played after success; but to be safe, put a temporary flag in localStorage too:
+        let playedLocal = JSON.parse(localStorage.getItem('dailyPlayedLocal')||'{}');
+        playedLocal[dailySeed] = playedLocal[dailySeed] || [];
+        if(playedLocal[dailySeed].includes(userId)){
+          alert("You have already played today's Daily Puzzle (local)!");
+          return;
+        }
+        // proceed
+        resetGameState();
+        hide('setupScreen'); show('gameScreen'); hide('leaderboardSection'); hide('resultScreen');
+        remainingTime = 3 * 60;
+        startTime = new Date();
+        document.getElementById('playInfo').textContent = `${userId} • Daily Puzzle (${dailySeed})`;
+        // load dailyQuestions from DB
+        db.ref(`dailyQuestions/${dailySeed}`).once('value').then(snap => {
+          const arr = snap.val() || [];
+          dailyQuestions = arr;
+          dailyIndex = 0;
+          startTimer();
+          nextDailyQuestion();
+        });
+      });
+    }
+  }).catch(err => {
+    console.error(err);
+    alert("Network error while checking daily status. Try again.");
+  });
 }
 
-function nextQuestion(difficulty) {
+/* ---------- ensureDailyQuestions: create deterministic daily set if missing ---------- */
+function ensureDailyQuestions(seedDate){
+  const dqRef = db.ref(`dailyQuestions/${seedDate}`);
+  return dqRef.once('value').then(snap=>{
+    if(snap.exists()){
+      // already present
+      return;
+    } else {
+      // generate a mixed set of questions across difficulties
+      const count = 20; // store 20 q's
+      const seq = generateDailySequence(seedDate, count);
+      return dqRef.set(seq);
+    }
+  });
+}
+
+/* ---------- deterministic daily sequence generator (returns array of {q,a}) ---------- */
+function generateDailySequence(seedDate, count){
+  // simple seeded PRNG using seedDate string
+  let seed = 0;
+  for(let i=0;i<seedDate.length;i++) seed = (seed*1315423911 + seedDate.charCodeAt(i)) >>> 0;
+  function seededRand(min,max){
+    // xorshift-ish
+    seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+    const r = (seed >>> 0) / 4294967296;
+    return Math.floor(r*(max-min+1))+min;
+  }
+  const modes = ["easy","medium","hard","pro","legend"];
+  const seq = [];
+  for(let i=0;i<count;i++){
+    const chosenMode = modes[seededRand(0,modes.length-1)];
+    const [min,max] = getRange(chosenMode);
+    const t = seededRand(0,4);
+    let q,a;
+    if(t===0){ const n1 = seededRand(min,max); const n2 = seededRand(min,max); q = `${n1} + ${n2}`; a = n1 + n2; }
+    else if(t===1){ let n1 = seededRand(min,max); let n2 = seededRand(min,max); if(n2>n1) [n1,n2]=[n2,n1]; q = `${n1} - ${n2}`; a = n1-n2; }
+    else if(t===2){ const n1 = seededRand(min,max); const n2 = seededRand(min,max); q = `${n1} × ${n2}`; a = n1*n2; }
+    else if(t===3){ const n1 = seededRand(min,max); const n2 = seededRand(2,9); q = `${n1} ÷ ${n2}`; a = parseFloat((n1/n2).toFixed(4)); }
+    else { const sq = seededRand(min,max); q = `√${sq*sq}`; a = sq; }
+    seq.push({ q, a });
+  }
+  return seq;
+}
+
+/* ---------- Timer ---------- */
+function startTimer(){
+  clearInterval(timerInterval);
+  document.getElementById("timer").textContent = `Time: ${remainingTime}s`;
+  timerInterval = setInterval(()=>{
+    remainingTime--;
+    document.getElementById("timer").textContent = `Time: ${remainingTime}s`;
+    if(remainingTime <= 0){
+      clearInterval(timerInterval);
+      endGame(false);
+    }
+  },1000);
+}
+
+/* ---------- Questions ---------- */
+function nextQuestion(difficulty){
   document.getElementById("answer").value = "";
   document.getElementById("feedback").textContent = "";
-
-  const [min, max] = getRange(difficulty);
+  const [min,max] = getRange(difficulty);
   let questionText, answer;
-
-  const type = rand(0, 4);
-  let n1 = rand(min, max), n2 = rand(min, max);
-
-  switch (type) {
+  const type = rand(0,4);
+  let n1 = rand(min,max), n2 = rand(min,max);
+  switch(type){
     case 0: questionText = `${n1} + ${n2}`; answer = n1 + n2; break;
-    case 1: if (n2 > n1) [n1, n2] = [n2, n1]; questionText = `${n1} - ${n2}`; answer = n1 - n2; break;
+    case 1: if(n2>n1) [n1,n2]=[n2,n1]; questionText = `${n1} - ${n2}`; answer = n1 - n2; break;
     case 2: questionText = `${n1} × ${n2}`; answer = n1 * n2; break;
-    case 3: case 3: // Division (show integer ÷ integer, but answer can be decimal)
-  n1 = rand(min, max);
-  n2 = rand(2, 9);
-  questionText = `${n1} ÷ ${n2}`;
-  answer = parseFloat((n1 / n2).toFixed(2)); // store up to 2 decimals
-  break;
-
-    case 4: const sq = rand(min, max); questionText = `√${sq * sq}`; answer = sq; break;
+    case 3:
+      n1 = rand(min,max); n2 = rand(2,9);
+      questionText = `${n1} ÷ ${n2}`;
+      answer = parseFloat((n1 / n2).toFixed(4));
+      break;
+    case 4:
+      const sq = rand(min,max);
+      questionText = `√${sq*sq}`; answer = sq; break;
   }
-
-  currentQuestion = questionText;
-  currentAnswer = answer;
+  currentQuestion = questionText; currentAnswer = answer;
   document.getElementById("question").textContent = questionText;
 }
 
-function submitAnswer() {
-  const userAns = parseFloat(document.getElementById("answer").value);
-  if (isNaN(userAns)) return;
+/* ---------- Daily question flow ---------- */
+function nextDailyQuestion(){
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").textContent = "";
+  if(!dailyQuestions || dailyQuestions.length===0){
+    document.getElementById("question").textContent = "No daily questions found.";
+    return;
+  }
+  if(dailyIndex >= dailyQuestions.length) dailyIndex = 0; // loop if exhausted within time
+  const qObj = dailyQuestions[dailyIndex++];
+  currentQuestion = qObj.q; currentAnswer = qObj.a;
+  document.getElementById("question").textContent = currentQuestion;
+}
 
+/* ---------- Submit / Skip ---------- */
+function submitAnswer(){
+  const val = parseFloat(document.getElementById("answer").value);
+  if(isNaN(val)) return;
   total++;
-  const correctAns = Math.round(currentAnswer * 100) / 100;
-  const userRounded = Math.round(userAns * 100) / 100;
-
-  if (Math.abs(userAns.toFixed(2) - currentAnswer.toFixed(2)) < 0.02) {
-
+  const userRounded = Math.round(val*100)/100;
+  const correctRounded = Math.round(currentAnswer*100)/100;
+  const isCorrect = Math.abs(userRounded - correctRounded) <= 0.01;
+  if(isCorrect){
     correct++;
-    document.getElementById("feedback").textContent = "Correct!";
+    document.getElementById("feedback").textContent = "✅ Correct";
   } else {
     wrong++;
-    document.getElementById("feedback").textContent = `Wrong! (Correct: ${correctAns})`;
-    mistakes.push({ q: currentQuestion, correct: correctAns, user: userRounded });
+    mistakes.push({ q: currentQuestion, correct: correctRounded, user: userRounded });
+    document.getElementById("feedback").textContent = `❌ Wrong (Correct: ${correctRounded})`;
   }
-
-  nextQuestion(difficulty);
+  // advance
+  if(playingDaily) nextDailyQuestion(); else nextQuestion(difficulty);
 }
 
-function skipQuestion() {
-  total++;
-  skipped++;
-  document.getElementById("feedback").textContent = `⏭Skipped! (Correct: ${currentAnswer})`;
-  nextQuestion(difficulty);
+/* ---------- skip ---------- */
+function skipQuestion(){
+  total++; skipped++;
+  mistakes.push({ q: currentQuestion, correct: Math.round(currentAnswer*100)/100, user: 'skipped' });
+  document.getElementById("feedback").textContent = `⏭ Skipped (Correct: ${Math.round(currentAnswer*100)/100})`;
+  if(playingDaily) nextDailyQuestion(); else nextQuestion(difficulty);
 }
 
-function endGame() {
+/* ---------- End game ---------- */
+function endGame(quitFlag=false){
   clearInterval(timerInterval);
-  document.getElementById("gameScreen").classList.add("hidden");
-  document.getElementById("resultScreen").classList.remove("hidden");
-  document.getElementById("leaderboardSection").classList.remove("hidden");
+  hide('gameScreen'); show('resultScreen'); show('leaderboardSection');
 
-  const elapsedTime = (new Date() - startTime) / 1000;
-  const answered = total - skipped;
-  const avgTime = answered > 0 ? (elapsedTime / answered).toFixed(2) : 0;
-  const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : 0;
-  const points = correct * modePoints[difficulty];
+  const elapsed = (Date.now() - startTime)/1000;
+  const answered = Math.max(0, total - skipped);
+  const avgTime = answered > 0 ? (elapsed / answered).toFixed(2) : 0;
+  const accuracy = answered > 0 ? ((correct / answered) * 100).toFixed(2) : "0.00";
+  const points = correct * (playingDaily ? 0 : (modePoints[difficulty]||10)); // for daily we compute differently below
 
-  document.getElementById("userInfo").textContent = `Name: ${userId} | Mode: ${difficulty} | Time: ${timeMin} min`;
+  document.getElementById("userInfo").textContent = `User ID: ${userId} • Mode: ${playingDaily ? 'DailyPuzzle' : difficulty} • Time: ${timeMin} min`;
   document.getElementById("totalQ").textContent = `Total Questions: ${total}`;
   document.getElementById("correctQ").textContent = `Correct: ${correct}`;
   document.getElementById("wrongQ").textContent = `Wrong: ${wrong}`;
   document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
   document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
-  document.getElementById("points").textContent = `Points: ${points}`;
-  document.getElementById("avgTime").textContent = `Avg Time/Que: ${avgTime}s`;
+  // For daily mode, define points as correct * (average medium points) e.g., 25
+  const dailyPointValue = 25;
+  const finalPoints = playingDaily ? (correct * dailyPointValue) : points;
+  document.getElementById("points").textContent = `Points: ${finalPoints}`;
+  document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
 
-  saveToLeaderboard(userId, difficulty, timeMin, accuracy, points);
-}
+  // Save session to Firebase
+  const session = {
+    userId,
+    mode: playingDaily ? 'daily' : difficulty,
+    time: playingDaily ? 3 : timeMin,
+    accuracy,
+    points: finalPoints,
+    timestamp: Date.now()
+  };
 
-function showMistakes() {
-  if (mistakes.length === 0) {
-    alert("No mistakes! 🎉");
-    return;
-  }
-  let msg = "Your Mistakes:\n\n";
-  mistakes.forEach((m, i) => {
-    msg += `${i + 1}. ${m.q}\nYour Answer: ${m.user} | Correct: ${m.correct}\n\n`;
+  // push session to /mainSessions
+  const newSessionRef = db.ref('mainSessions').push();
+  newSessionRef.set(session).then(()=>{
+    // update user total points aggregation in /users/{userId}/totalPoints
+    const userKey = sanitizeKey(userId);
+    const userRef = db.ref(`users/${userKey}`);
+    userRef.once('value').then(snap=>{
+      const cur = snap.val() || { name: userId, totalPoints: 0 };
+      const newTotal = (cur.totalPoints || 0) + session.points;
+      userRef.update({ name: userId, totalPoints: newTotal }).then(()=>{
+        // If daily, also write into daily branch and mark played
+        if(playingDaily){
+          const dateKey = dailySeed;
+          const dailyEntryRef = db.ref(`daily/${dateKey}`).push();
+          dailyEntryRef.set({
+            userId, points: finalPoints, accuracy, time: 3, timestamp: Date.now()
+          }).then(()=>{
+            // mark as played so user can't play again
+            db.ref(`dailyPlayed/${dateKey}/${sanitizeKey(userId)}`).set(true);
+            // also mark locally
+            let dl = JSON.parse(localStorage.getItem('dailyPlayedLocal')||'{}');
+            dl[dateKey]=dl[dateKey]||[]; dl[dateKey].push(userId);
+            localStorage.setItem('dailyPlayedLocal', JSON.stringify(dl));
+            // update UIs
+            updateMainBoard();
+            updateDailyBoard();
+          });
+        } else {
+          // non-daily session finished
+          updateMainBoard();
+        }
+      });
+    });
+  }).catch(err=>{
+    console.error('Error saving session', err);
+    alert('Error saving session to server');
+    updateMainBoard(); updateDailyBoard();
   });
-  alert(msg);
 }
 
-function saveToLeaderboard(userId, mode, time, accuracy, points) {
-  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-  let existing = leaderboard.find(u => u.userId === userId);
+/* ---------- Save to local fallback (not used now) ---------- */
+function resetGameState(){
+  clearInterval(timerInterval);
+  correct=0; wrong=0; total=0; skipped=0; mistakes=[]; currentAnswer=null; currentQuestion=null;
+}
 
-  if (existing) {
-    existing.totalPoints += points;
+/* ---------- Show mistakes ---------- */
+function showMistakes(){
+  if(mistakes.length===0){ alert("No mistakes! 🎉"); return; }
+  let s = "Your wrong answers:\n\n";
+  mistakes.forEach((m,i)=> s += `${i+1}. ${m.q}\nYour: ${m.user}  Correct: ${m.correct}\n\n`);
+  alert(s);
+}
+
+/* ---------- Back to setup ---------- */
+function backToSetup(){
+  resetGameState();
+  hide('gameScreen'); hide('resultScreen'); show('setupScreen'); show('leaderboardSection');
+}
+
+/* ---------- Leaderboard UI ---------- */
+function showTab(tab){
+  if(tab==='main'){
+    document.getElementById('tabMain').classList.add('active');
+    document.getElementById('tabDaily').classList.remove('active');
+    show('mainBoard'); hide('dailyBoard'); show('mainControls');
   } else {
-    existing = { userId, mode, time, accuracy, points, totalPoints: points };
-    leaderboard.push(existing);
+    document.getElementById('tabDaily').classList.add('active');
+    document.getElementById('tabMain').classList.remove('active');
+    hide('mainBoard'); show('dailyBoard'); hide('mainControls');
   }
-
-  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-  updateLeaderboard();
 }
 
-function updateLeaderboard() {
-  let leaderboard = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-  leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
-  const body = document.getElementById("leaderboardBody");
-  body.innerHTML = "";
-  leaderboard.forEach(u => {
-    const row = `<tr>
-      <td>${u.userId}</td>
-      <td>${u.mode}</td>
-      <td>${u.time} min</td>
-      <td>${u.accuracy}</td>
-      <td>${u.points}</td>
-      <td>${u.totalPoints}</td>
-    </tr>`;
-    body.innerHTML += row;
+/* ---------- Helpers for main board ---------- */
+let usersCache = {}; // userKey -> {name,totalPoints}
+function updateMainBoard(){
+  const filterMode = document.getElementById('filterMode').value;
+  db.ref('mainSessions').once('value').then(snap=>{
+    const sessionsObj = snap.val() || {};
+    const sessions = Object.keys(sessionsObj).map(k => sessionsObj[k]);
+    // load users totals
+    db.ref('users').once('value').then(usnap=>{
+      usersCache = usnap.val() || {};
+      // filter by mode
+      const filtered = sessions.filter(s => filterMode === 'all' ? true : ( (filterMode==='daily') ? s.mode==='daily' : s.mode===filterMode ) );
+      // sort by timestamp desc
+      filtered.sort((a,b)=> b.timestamp - a.timestamp);
+      // prepare rows
+      const body = document.getElementById('leaderboardBody');
+      body.innerHTML = '';
+      filtered.forEach(s=>{
+        const key = sanitizeKey(s.userId);
+        const totalPts = usersCache[key] ? (usersCache[key].totalPoints || 0) : 0;
+        const when = new Date(s.timestamp).toLocaleString();
+        const row = `<tr>
+          <td>${escapeHtml(s.userId)}</td>
+          <td>${escapeHtml(s.mode)}</td>
+          <td>${s.time} min</td>
+          <td>${s.accuracy}</td>
+          <td>${s.points}</td>
+          <td>${totalPts}</td>
+          <td>${when}</td>
+        </tr>`;
+        body.innerHTML += row;
+      });
+    });
   });
 }
 
-function restart() {
-  location.reload();
+/* ---------- sort by total points (aggregated users) ---------- */
+function sortByTotalPoints(){
+  // fetch users list and sessions and then display sessions sorted by user's total points
+  db.ref('users').once('value').then(usnap=>{
+    const users = usnap.val() || {};
+    db.ref('mainSessions').once('value').then(ssnap=>{
+      const sessionsObj = ssnap.val() || {};
+      const sessions = Object.keys(sessionsObj).map(k => sessionsObj[k]);
+      // attach totalPoints
+      sessions.forEach(s=>{
+        const k = sanitizeKey(s.userId);
+        s._totalPoints = users[k] ? (users[k].totalPoints || 0) : 0;
+      });
+      sessions.sort((a,b)=> b._totalPoints - a._totalPoints);
+      const body = document.getElementById('leaderboardBody');
+      body.innerHTML = '';
+      sessions.forEach(s=>{
+        const when = new Date(s.timestamp).toLocaleString();
+        body.innerHTML += `<tr>
+          <td>${escapeHtml(s.userId)}</td>
+          <td>${escapeHtml(s.mode)}</td>
+          <td>${s.time} min</td>
+          <td>${s.accuracy}</td>
+          <td>${s.points}</td>
+          <td>${s._totalPoints}</td>
+          <td>${when}</td>
+        </tr>`;
+      });
+    });
+  });
 }
 
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+/* ---------- Daily board ---------- */
+function updateDailyBoard(){
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('dailySeedLabel').textContent = today;
+  db.ref(`daily/${today}`).once('value').then(snap=>{
+    const arrObj = snap.val() || {};
+    const arr = Object.keys(arrObj).map(k => arrObj[k]);
+    arr.sort((a,b)=> b.points - a.points);
+    const body = document.getElementById('dailyBody'); body.innerHTML = '';
+    arr.forEach(e=>{
+      const when = new Date(e.timestamp).toLocaleString();
+      body.innerHTML += `<tr>
+        <td>${escapeHtml(e.userId)}</td>
+        <td>${e.points}</td>
+        <td>${e.accuracy}</td>
+        <td>${e.time}</td>
+        <td>${when}</td>
+      </tr>`;
+    });
+  });
+}
 
-function getRange(difficulty) {
-  switch (difficulty) {
-    case "easy": return [1, 10];
-    case "medium": return [10, 100];
-    case "hard": return [100, 1000];
-    case "pro": return [1000, 10000];
-    case "legend": return [10000, 100000];
+/* ---------- Admin: reset today's daily entries ---------- */
+function adminResetDaily(){
+  if(!confirm('Reset today\'s daily entries? (This deletes today daily entries in DB)')) return;
+  const today = new Date().toISOString().slice(0,10);
+  db.ref(`daily/${today}`).remove().then(()=>{
+    db.ref(`dailyPlayed/${today}`).remove();
+    db.ref(`dailyQuestions/${today}`).remove(); // optionally remove question set to regenerate next time
+    updateDailyBoard(); updateMainBoard();
+    alert('Daily entries reset.');
+  });
+}
+
+/* ---------- Utilities ---------- */
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function getRange(mode){
+  switch(mode){
+    case "easy": return [1,10];
+    case "medium": return [10,100];
+    case "hard": return [100,1000];
+    case "pro": return [1000,10000];
+    case "legend": return [10000,100000];
+    default: return [1,10];
   }
 }
+function sanitizeKey(s){ return s.replace(/\./g,'_').replace(/\$/g,'_').replace(/\[/g,'_').replace(/\]/g,'_').replace(/\#/g,'_').replace(/\//g,'_'); }
+function escapeHtml(text){ if(!text) return ''; return String(text).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; }); }
 
-function getCleanDivision(min, max) {
-  let a, b;
-  for (let i = 0; i < 100; i++) {
-    a = rand(min, max);
-    b = rand(2, 9);
-    if (a % b === 0 || b < 10) break;
-  }
-  return [a, b];
-}
-
-// Initial load leaderboard
-updateLeaderboard();
+/* ---------- Init: update leaderboards on load ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateMainBoard();
+  updateDailyBoard();
+  showTab('main');
+});
 </script>
 
 </body>
 </html>
-
