@@ -34,6 +34,8 @@
   <h3>POINTS DISTRIBUTION</h3>
   <h4>Easy - 10 |  Medium - 25 |  Hard - 200</h4> 
   <h4>Pro - 500   |    Legend - 1000</h4>
+  <h3>DAILY PUZZLE : Random Que's for 3mins</h3>
+ 
 
   <p>Enter your Name, select difficulty, and start the challenge!</p>
 
@@ -186,7 +188,9 @@ function startGame(){
 
   playingDaily = false;
   resetGameState();
-  hide('setupScreen'); show('gameScreen'); hide('leaderboardSection'); hide('resultScreen');
+  hide('setupScreen'); show('gameScreen');
+  document.querySelector("img").style.display = "none";
+  hide('leaderboardSection'); hide('resultScreen');
 
   remainingTime = timeMin * 60;
   startTime = new Date();
@@ -330,18 +334,35 @@ function nextQuestion(difficulty){
 }
 
 /* ---------- Daily question flow ---------- */
+let answeredSet = new Set();
+
 function nextDailyQuestion(){
   document.getElementById("answer").value = "";
   document.getElementById("feedback").textContent = "";
-  if(!dailyQuestions || dailyQuestions.length===0){
+
+  if(!dailyQuestions || dailyQuestions.length === 0){
     document.getElementById("question").textContent = "No daily questions found.";
     return;
   }
-  if(dailyIndex >= dailyQuestions.length) dailyIndex = 0; // loop if exhausted within time
-  const qObj = dailyQuestions[dailyIndex++];
-  currentQuestion = qObj.q; currentAnswer = qObj.a;
+
+  // Get unanswered questions (not in answeredSet)
+  const remaining = dailyQuestions.filter((_, i) => !answeredSet.has(i));
+
+  if(remaining.length === 0){
+    // all answered or skipped
+    document.getElementById("question").textContent = "✅ All daily questions done!";
+    return;
+  }
+
+  // choose next unanswered (or random from remaining)
+  const idx = dailyQuestions.indexOf(remaining[0]);
+  dailyIndex = idx;
+  const qObj = dailyQuestions[dailyIndex];
+  currentQuestion = qObj.q; 
+  currentAnswer = qObj.a;
   document.getElementById("question").textContent = currentQuestion;
 }
+
 
 /* ---------- Submit / Skip ---------- */
 function submitAnswer(){
@@ -353,12 +374,14 @@ function submitAnswer(){
   const isCorrect = Math.abs(userRounded - correctRounded) <= 0.01;
   if(isCorrect){
     correct++;
-    document.getElementById("feedback").textContent = "✅ Correct";
+    document.getElementById("feedback").textContent = "Correct";
   } else {
     wrong++;
     mistakes.push({ q: currentQuestion, correct: correctRounded, user: userRounded });
-    document.getElementById("feedback").textContent = `❌ Wrong (Correct: ${correctRounded})`;
+    document.getElementById("feedback").textContent = `Wrong (Correct: ${correctRounded})`;
   }
+  if(playingDaily) answeredSet.add(dailyIndex);
+
   // advance
   if(playingDaily) nextDailyQuestion(); else nextQuestion(difficulty);
 }
@@ -366,8 +389,10 @@ function submitAnswer(){
 /* ---------- skip ---------- */
 function skipQuestion(){
   total++; skipped++;
-  mistakes.push({ q: currentQuestion, correct: Math.round(currentAnswer*100)/100, user: 'skipped' });
-  document.getElementById("feedback").textContent = `⏭ Skipped (Correct: ${Math.round(currentAnswer*100)/100})`;
+  //mistakes.push({ q: currentQuestion, correct: Math.round(currentAnswer*100)/100, user: 'skipped' });
+  //document.getElementById("feedback").textContent = `⏭ Skipped (Correct: ${Math.round(currentAnswer*100)/100})`;
+  if(playingDaily) answeredSet.add(dailyIndex);
+
   if(playingDaily) nextDailyQuestion(); else nextQuestion(difficulty);
 }
 
@@ -389,7 +414,7 @@ function endGame(quitFlag=false){
   document.getElementById("skippedQ").textContent = `Skipped: ${skipped}`;
   document.getElementById("accuracy").textContent = `Accuracy: ${accuracy}%`;
   // For daily mode, define points as correct * (average medium points) e.g., 25
-  const dailyPointValue = 25;
+  const dailyPointValue = 350;
   const finalPoints = playingDaily ? (correct * dailyPointValue) : points;
   document.getElementById("points").textContent = `Points: ${finalPoints}`;
   document.getElementById("avgTime").textContent = `Avg Time/Answered Q: ${avgTime}s`;
@@ -452,7 +477,7 @@ function resetGameState(){
 
 /* ---------- Show mistakes ---------- */
 function showMistakes(){
-  if(mistakes.length===0){ alert("No mistakes! 🎉"); return; }
+  if(mistakes.length===0){ alert("No mistakes! "); return; }
   let s = "Your wrong answers:\n\n";
   mistakes.forEach((m,i)=> s += `${i+1}. ${m.q}\nYour: ${m.user}  Correct: ${m.correct}\n\n`);
   alert(s);
@@ -460,6 +485,7 @@ function showMistakes(){
 
 /* ---------- Back to setup ---------- */
 function backToSetup(){
+  document.querySelector("img").style.display = "block";
   resetGameState();
   hide('gameScreen'); hide('resultScreen'); show('setupScreen'); show('leaderboardSection');
 }
@@ -604,3 +630,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 </body>
 </html>
+
